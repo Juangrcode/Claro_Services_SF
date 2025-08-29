@@ -1,0 +1,249 @@
+[
+  {
+    "id": "rest-example-1",
+    "name": "HDC_V3 ConsulSalesforce",
+    "type": "REST",
+    "environmentUrls":{
+      "SIT": "SF_URL_SIT",
+      "UAT": "SF_URL_UAT"
+    },
+    "path": "/HDC/V3.0/Rest/ConsulSalesforce",
+    "method": "PUT",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "headerEnvVars": {
+      "NAME_API_KEY": "API_KEY"
+    },
+    "expectedStatus": 200,
+    "body": {
+      "headerRequest": {
+          "target": 2,
+          "requestDate": "2024-02-13T20:49:45"
+      },
+      "clave": "73ZUZ",   
+      "identificacion": "1000047910",
+      "primerApellido": "GUSMAN",
+      "producto": "60",
+      "tipoIdentificacion": "1",
+      "usuario": "ECM9842F",
+      "region": "R4",
+      "canal": "1",
+      "origen": "INS",
+      "parametros": {
+          "parametro": [
+              {
+                  "tipo": "T",
+                  "nombre": "01",
+                  "valor": "425168"
+              },
+              {
+                  "tipo": "T",
+                  "nombre": "02",
+                  "valor": "DISTRIBUIDOR PRINCIPAL BUCARAMANGA"
+              },
+              {
+                  "tipo": "T",
+                  "nombre": "03",
+                  "valor": "890124125"
+              }
+          ]
+      }
+  },
+  "expectedContent": {
+        "headerResponse": {
+            "responseDate": "2025-08-25T11:03:34.523-05:00",
+            "traceabilityId": "37964ef2-0813-46cc-b3ea-5fbce3948d12"
+        },
+        "historia": {
+            "ciudad": "BOGOTA D.C.",
+            "clasificacionServicio": "A",
+            "clasificacionTecnologia": "E",
+            "estadoIdentificacion": "00",
+            "fechaExpedicion": "05/12/2000",
+            "nombres": "LAURA NATALIA",
+            "identificacionDigitada": "1000047910",
+            "primerApellido": "PRIETO",
+            "puntaje": "570",
+            "respuesta": "N/A",
+            "score": "N/A",
+            "segundoApellido": "VILLANUEVA",
+            "tipoIdDigitado": "1",
+            "fechaSolicitudCalificacion": "2025-07-30T09:21:33-05:00",
+            "fechaVencimientoCalificacion": "2025-08-29T09:21:33-05:00"
+        },
+        "matrizPersonaVenta": {
+            "montoServicio": "370385.94",
+            "cupoAutorizado": "450000",
+            "calificacion": "A",
+            "canal": "1",
+            "id": "1209",
+            "cfmAnticipado": "1",
+            "region": "R4",
+            "cfmFactura": "0"
+        },
+        "matrizHogarVenta": {
+            "montoServicio": "64845212",
+            "calificacion": "A",
+            "id": "2570",
+            "cfmAnticipado": "1",
+            "cfmFactura": "1"
+        },
+        "matrizEquipoVenta": {
+            "calificacion": "E",
+            "cantidadEquiposTecnologia": "0",
+            "cantidadEquiposTerminales": "0",
+            "montoTerminales": "0",
+            "montoTecnologia": "0",
+            "totalCupo": "1108200",
+            "cupoAutorizadoTotal": "6000000",
+            "pagoInicialTerminales_1": "0",
+            "pagoInicialTerminales_6": "0",
+            "pagoInicialTerminales_12": "0",
+            "pagoInicialTerminales_18": "0",
+            "pagoInicialTerminales_24": "100",
+            "pagoInicialTecnologia_6": "0",
+            "pagoInicialTecnologia_12": "0",
+            "pagoInicialTecnologia_18": "0",
+            "pagoInicialTecnologia_24": "0",
+            "pagoInicialTecnologia_36": "0",
+            "id": "1109",
+            "region": "R4"
+        },
+        "matrizPersonaEmpleado": {
+            "calificacion": "A",
+            "canal": "1",
+            "montoServicio": "450000",
+            "cfmAnticipado": "0",
+            "id": "3705"
+        },
+        "matrizHogarEmpleado": {
+            "calificacion": "A",
+            "montoServicio": "64845212",
+            "cfmAnticipado": "1",
+            "cfmFactura": "1",
+            "id": "1965"
+        },
+        "matrizReposDomicilio": {
+            "calificacion": "A",
+            "cantidadEquiposTec": "1",
+            "cupo": "5457",
+            "cuotaInicial6": "10",
+            "cuotaIniciall2": "20",
+            "cuotaInicial18": "20",
+            "cuotaInicial24": "50",
+            "id": "261"
+        }
+    }
+  },
+  {
+    "id": "rest-example-2",
+    "name": "NotificationCustomerChannel SMS",
+    "type": "REST",
+    "environmentUrls":{
+      "SIT": "SF_URL_SIT",
+      "UAT": "SF_URL_UAT"
+    },
+    "path": "/MS/COM/BusinessInteraction/RSNotificationCustomerChannel/V1",
+    "method": "PUT",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "headerEnvVars": {
+      "NAME_API_KEY": "API_KEY"
+    },
+    "body": {
+        "messageType": "SMS",
+        "description": "Breve descripción de la notificación. Este es un mensaje de comunicación para promoción",
+        "sendTimes": 1,
+        "state": "Active",
+        "subject": "Asunto del mensaje SMTP o SMS prod",
+        "tryTimes": 3,
+        "pushType": "SINGLE",
+        "communicationType": "COMERCIAL",
+        "communicationOrigin": "SALESFORCE-VENTAS",
+        "deliveryReceipts": "N",
+        "contentType": "MESSAGE",
+        "content": "Estimado usuario, Claro te informa que se ha generado la Orden Q00002935 para la adquisición de iPhone 11 128GB Negro, por un valor .",
+        "profileId": "SALESFORCE",
+        "receiver": [
+            {
+                "phone": "573023455882"
+            }
+        ]
+    },
+    "expectedStatus": 202,
+    "expectedContent": {
+        "status": 202,
+        "value": {
+            "statusText": "OK",
+            "data": {
+                "isValid": true,
+                "message": "The notification has been accepted"
+            }
+        }
+    }
+  },
+  {
+    "id": "rest-example-3",
+    "name": "NotificationCustomerChannel SMTP",
+    "type": "REST",
+    "environmentUrls":{
+      "SIT": "SF_URL_SIT",
+      "UAT": "SF_URL_UAT"
+    },
+    "path": "/MS/COM/BusinessInteraction/RSNotificationCustomerChannel/V1",
+    "method": "PUT",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json"
+    },
+    "headerEnvVars": {
+      "NAME_API_KEY": "API_KEY"
+    },
+    "body": {
+        "messageType": "SMTP",
+        "description": "Breve descripción de la notificación. Este es un mensaje de comunicación para promoción",
+        "sendTimes": 1,
+        "state": "Active",
+        "subject": "Asunto del mensaje SMTP o SMS prod",
+        "tryTimes": 3,
+        "pushType": "SINGLE",
+        "communicationType": "COMERCIAL",
+        "communicationOrigin": "SALESFORCE-VENTAS",
+        "deliveryReceipts": "N",
+        "contentType": "MESSAGE",
+        "content": "Estimado usuario, Claro te informa que se ha generado la Orden Q00002935 para la adquisición de iPhone 11 128GB Negro, por un valor .",
+        "profileId": "SALESFORCE",
+        "receiver": [
+            {
+                "mail": "gonzalezju@hitss.com"
+            }
+        ],
+        "attachment":[]
+    },
+    "expectedStatus": 202,
+    "expectedContent": {
+        "status": 202,
+        "value": {
+            "statusText": "OK",
+            "data": {
+                "isValid": true,
+                "message": "The notification has been accepted"
+            }
+        }
+    }
+  },
+  {
+    "id": "soap-example-1",
+    "name": "Example SOAP Service",
+    "type": "SOAP",
+    "url": "http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL",
+    "method": "CountryName",
+    "args": {
+      "sCountryISOCode": "US"
+    },
+    "expectedContent": "United States"
+  }
+]

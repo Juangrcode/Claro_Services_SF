@@ -1,0 +1,4 @@
+[
+  { "tipoDocumento": "1", "numDocumento": "1234567890", "primerApellido": "TEST" },
+  { "tipoDocumento": "1", "numDocumento": "0987654321", "primerApellido": "PRUEBA" }
+]

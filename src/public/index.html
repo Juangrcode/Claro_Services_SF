@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor de Servicios Claro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            claro: {
+              red: '#E40520',
+              gray: '#F8F9FA',
+              dark: '#333333'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .service-card {
+      transition: all 0.3s ease;
+    }
+    .service-card:hover {
+      transform: translateY(-5px);
+    }
+    .success-border {
+      border-left: 5px solid #10B981;
+    }
+    .failed-border {
+      border-left: 5px solid #EF4444;
+    }
+    .disabled-border {
+      border-left: 5px solid #9CA3AF;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="container mx-auto px-4 py-6">
+    <header class="flex items-center pb-4 mb-6 border-b">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Claro.svg/1200px-Claro.svg.png" alt="Claro Logo" class="h-10 mr-3">
+      <h1 class="text-2xl font-semibold text-claro-dark">Monitor de Servicios</h1>
+      <div class="ml-auto flex items-center space-x-3">
+        <div class="mr-4">
+          <select id="environment-selector" class="px-3 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-claro-red focus:border-transparent">
+            <option value="SIT">Ambiente SIT</option>
+            <option value="UAT">Ambiente UAT</option>
+          </select>
+        </div>
+        <button id="toggle-validation" class="px-4 py-2 bg-claro-red text-white rounded-lg shadow-md hover:bg-red-700 transition-colors flex items-center">
+          <span id="validation-status">Validación Activa</span>
+          <span id="validation-icon" class="ml-2"><i class="fas fa-toggle-on"></i></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="mb-8">
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="p-5">
+          <h2 class="text-xl font-semibold mb-4">Resumen</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="p-4 text-center">
+              <h3 id="total-services" class="text-3xl font-bold">0</h3>
+              <p class="text-gray-600">Total de Servicios</p>
+            </div>
+            <div class="p-4 text-center bg-green-50 rounded-lg">
+              <h3 id="success-services" class="text-3xl font-bold text-green-600">0</h3>
+              <p class="text-green-600">Servicios Activos</p>
+            </div>
+            <div class="p-4 text-center bg-red-50 rounded-lg">
+              <h3 id="failed-services" class="text-3xl font-bold text-red-600">0</h3>
+              <p class="text-red-600">Servicios con Fallas</p>
+            </div>
+          </div>
+          
+          <!-- Gráfica de estado de servicios -->
+          <div class="w-full h-64">
+            <canvas id="services-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div>
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <i class="fas fa-server mr-2 text-claro-red"></i> Servicios REST
+        </h2>
+        <div id="rest-services" class="space-y-4">
+          <!-- REST services will be loaded here -->
+          <div class="text-center text-gray-500 py-10 bg-white rounded-lg shadow-sm">Cargando servicios REST...</div>
+        </div>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold mb-4 flex items-center">
+          <i class="fas fa-envelope mr-2 text-claro-red"></i> Servicios SOAP
+        </h2>
+        <div id="rest-services" class="space-y-4">
+          <div id="soap-services" class="space-y-4">
+            <!-- SOAP services will be loaded here -->
+            <div class="text-center text-gray-500 py-10 bg-white rounded-lg shadow-sm">Cargando servicios SOAP...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="refresh-btn" class="fixed bottom-6 right-6 bg-claro-red text-white p-4 rounded-full shadow-lg hover:bg-red-700 transition-colors">
+      <i class="fas fa-sync-alt"></i>
+    </button>
+  </div>
+
+  <!-- Modal para detalles del servicio -->
+  <div id="service-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 id="modal-title" class="text-xl font-bold">Detalles del Servicio</h3>
+          <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+        <div id="modal-content" class="space-y-4">
+          <!-- Modal content will be loaded here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" class="fixed inset-0 bg-white bg-opacity-70 hidden flex items-center justify-center z-50">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-claro-red border-t-transparent"></div>
+      <p class="mt-2 text-claro-dark">Cargando...</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Global variables
+      let servicesData = [];
+      let validationEnabled = localStorage.getItem('validationEnabled') !== null ? 
+        localStorage.getItem('validationEnabled') === 'true' : true;
+      let disabledServices = JSON.parse(localStorage.getItem('disabledServices') || '{}');
+      let servicesChart = null;
+      let currentEnvironment = localStorage.getItem('currentEnvironment') || 'SIT';
+
+      // Initialize Chart
+      function initChart(data) {
+        const ctx = document.getElementById('services-chart').getContext('2d');
+        
+        if (servicesChart) {
+          servicesChart.destroy();
+        }
+        
+        servicesChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Activos', 'Con Fallas', 'Desactivados'],
+            datasets: [{
+              data: [
+                data.summary.success,
+                data.summary.failed,
+                data.summary.disabled || 0
+              ],
+              backgroundColor: [
+                '#10B981', // Green for actives
+                '#EF4444', // Red for failures
+                '#9CA3AF'  // Gray for disabled
+              ],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            },
+            cutout: '70%'
+          }
+        });
+      }
+
+      // Load services
+      function loadServices() {
+        showLoading();
+        // Include disabled services in the request
+        const disabledServicesParam = encodeURIComponent(JSON.stringify(disabledServices));
+        fetch(`/check-all?environment=${currentEnvironment}&disabledServices=${disabledServicesParam}`)
+          .then(response => response.json())
+          .then(data => {
+            // Apply saved disabled service states
+            servicesData = data.services.map(service => {
+              const serviceId = service.id || service.name.replace(/\s+/g, '-').toLowerCase();
+              if (disabledServices[serviceId]) {
+                service.disabled = true;
+              }
+              return service;
+            });
+            
+            // Update dashboard with recalculated summary
+            const summary = calculateSummary(servicesData);
+            updateDashboard({
+              summary: summary,
+              services: servicesData
+            });
+            
+            // Initialize Chart with updated summary
+            initChart({
+              summary: summary
+            });
+            
+            hideLoading();
+          })
+          .catch(error => {
+            console.error('Error loading services:', error);
+            hideLoading();
+            alert('Error al cargar los servicios. Por favor, intente de nuevo.');
+          });
+      }
+
+      // Update dashboard with service data
+      function updateDashboard(data) {
+        // Update summary
+        document.getElementById('total-services').textContent = data.summary.total;
+        document.getElementById('success-services').textContent = data.summary.success;
+        document.getElementById('failed-services').textContent = data.summary.failed;
+
+        // Clear service containers
+        const restContainer = document.getElementById('rest-services');
+        const soapContainer = document.getElementById('soap-services');
+        restContainer.innerHTML = '';
+        soapContainer.innerHTML = '';
+
+        // Filter services by type
+        const restServices = data.services.filter(service => service.type === 'REST');
+        const soapServices = data.services.filter(service => service.type === 'SOAP');
+
+        // Add message if no services
+        if (restServices.length === 0) {
+          restContainer.innerHTML = '<div class="text-center text-gray-500 py-10 bg-white rounded-lg shadow-sm">No hay servicios REST configurados</div>';
+        }
+
+        if (soapServices.length === 0) {
+          soapContainer.innerHTML = '<div class="text-center text-gray-500 py-10 bg-white rounded-lg shadow-sm">No hay servicios SOAP configurados</div>';
+        }
+
+        // Add REST services
+        restServices.forEach(service => {
+          restContainer.appendChild(createServiceCard(service));
+        });
+
+        // Add SOAP services
+        soapServices.forEach(service => {
+          soapContainer.appendChild(createServiceCard(service));
+        });
+      }
+
+      // Create service card
+      function createServiceCard(service) {
+        const card = document.createElement('div');
+        
+        // Set service status classes
+        let statusClass, statusBgClass, statusText, borderClass;
+        
+        if (!validationEnabled || service.disabled) {
+          statusClass = 'text-gray-500';
+          statusBgClass = 'bg-gray-200';
+          statusText = 'Desactivado';
+          borderClass = 'disabled-border';
+        } else if (service.status === 'success') {
+          statusClass = 'text-green-600';
+          statusBgClass = 'bg-green-100';
+          statusText = 'Activo';
+          borderClass = 'success-border';
+        } else {
+          statusClass = 'text-red-600';
+          statusBgClass = 'bg-red-100';
+          statusText = 'Falla';
+          borderClass = 'failed-border';
+        }
+
+        card.className = `service-card bg-white rounded-lg shadow-md overflow-hidden ${borderClass}`;
+        card.dataset.serviceId = service.id || service.name.replace(/\s+/g, '-').toLowerCase();
+
+        card.innerHTML = `
+          <div class="p-4">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="font-semibold text-lg">${service.name}</h3>
+              <span class="px-2 py-1 rounded-full text-xs font-medium ${statusBgClass} ${statusClass}">${statusText}</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-2"><span class="font-medium">URL:</span> ${service.url}</p>
+            <p class="text-sm text-gray-600 mb-2"><span class="font-medium">Tiempo:</span> ${service.responseTime}</p>
+            <div class="flex justify-between items-center mt-3">
+              <p class="text-xs text-gray-500">${new Date(service.timestamp).toLocaleString()}</p>
+              <button class="view-details-btn px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm transition-colors" data-service-id="${card.dataset.serviceId}">
+                Ver detalles
+              </button>
+              <button class="toggle-service-btn px-3 py-1 ${service.disabled ? 'bg-green-100 hover:bg-green-200 text-green-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} rounded text-sm transition-colors ml-2" data-service-id="${card.dataset.serviceId}">
+                ${service.disabled ? 'Activar' : 'Desactivar'}
+              </button>
+            </div>
+          </div>
+        `;
+
+        // Add event listener for details button
+        card.querySelector('.view-details-btn').addEventListener('click', function() {
+          const serviceId = card.dataset.serviceId;
+          // Include disabled services in the request
+          const disabledServicesParam = encodeURIComponent(JSON.stringify(disabledServices));
+          // Reload service with current environment before showing details
+          fetch(`/check/${serviceId}?environment=${currentEnvironment}&disabledServices=${disabledServicesParam}`)
+            .then(response => response.json())
+            .then(data => {
+              if (data && data.services && data.services.length > 0) {
+                showServiceDetails(data.services[0]);
+              } else {
+                showServiceDetails(service);
+              }
+            })
+            .catch(error => {
+              console.error('Error loading service details:', error);
+              showServiceDetails(service);
+            });
+        });
+
+        // Add event listener for toggle button
+        card.querySelector('.toggle-service-btn').addEventListener('click', function() {
+          toggleServiceStatus(service);
+        });
+
+        return card;
+      }
+
+      // Show service details in modal
+      function showServiceDetails(service) {
+        console.log({service})
+        const modal = document.getElementById('service-detail-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+
+        modalTitle.textContent = `${service.name} - Detalles`;
+
+        // Set service status classes
+        let statusClass, statusText;
+        if (!validationEnabled || service.disabled) {
+          statusClass = 'bg-gray-100 text-gray-600';
+          statusText = 'Desactivado';
+        } else if (service.status === 'success') {
+          statusClass = 'bg-green-100 text-green-600';
+          statusText = 'Activo';
+        } else {
+          statusClass = 'bg-red-100 text-red-600';
+          statusText = 'Falla';
+        }
+
+        // Set service type classes
+        let typeClass, typeText;
+        if (service.type === 'rest') {
+          typeClass = 'bg-blue-100 text-blue-600';
+          typeText = 'REST';
+        } else {
+          typeClass = 'bg-yellow-100 text-yellow-600';
+          typeText = 'SOAP';
+        }
+
+        // Build modal content
+        let content = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Tipo</p>
+              <p class="px-3 py-1 rounded-full text-sm inline-block ${typeClass}">${typeText}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Estado</p>
+              <p class="px-3 py-1 rounded-full text-sm inline-block ${statusClass}">${statusText}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Última verificación</p>
+              <p class="text-sm">${new Date(service.timestamp).toLocaleString()}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">URL</p>
+              <p class="text-sm break-all">${service.url}</p>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Tiempo de respuesta</p>
+              <p class="text-sm">${service.responseTime}</p>
+            </div>
+        `;
+
+        if (service.statusCode) {
+          content += `
+            <div>
+              <p class="text-sm font-medium text-gray-500">Código de estado</p>
+              <p class="text-sm">${service.statusCode}</p>
+            </div>
+          `;
+        }
+
+        content += `</div>`;
+
+        // Details section
+        content += `
+          <div class="mb-4">
+            <h4 class="font-medium mb-2">Detalles</h4>
+            <div class="bg-gray-50 p-3 rounded-lg overflow-auto max-h-40">
+              <pre class="text-sm whitespace-pre-wrap">${service.details}</pre>
+            </div>
+          </div>
+        `;
+
+        // Response section
+        content += `
+          <div>
+            <h4 class="font-medium mb-2">Respuesta completa (JSON)</h4>
+            <div class="bg-gray-50 p-3 rounded-lg overflow-auto max-h-60">
+              <pre class="text-sm whitespace-pre-wrap text-blue-800">${formatResponse(service.response)}</pre>
+            </div>
+          </div>
+        `;
+        
+        // Function to format response
+        function formatResponse(response) {
+          if (!response) return 'No hay datos de respuesta disponibles';
+          
+          try {
+            // If already an object, stringify it
+            if (typeof response === 'object') {
+              return JSON.stringify(response, null, 2);
+            }
+            
+            // If string is XML (for SOAP), format it
+            if (typeof response === 'string' && response.trim().startsWith('<')) {
+              // Show formatted XML for SOAP
+              return response;
+            }
+            
+            // Try to parse as JSON if string
+            if (typeof response === 'string') {
+              try {
+                const jsonObj = JSON.parse(response);
+                return JSON.stringify(jsonObj, null, 2);
+              } catch (e) {
+                // If not JSON, return as is
+                return response;
+              }
+            }
+            
+            return String(response);
+          } catch (error) {
+            return `Error al formatear respuesta: ${error.message}`;
+          }
+        }
+        
+        // Add error trace section if error exists
+        if (service.error) {
+          content += `
+            <div class="mt-4">
+              <h4 class="font-medium mb-2 text-red-600">Error</h4>
+              <div class="bg-red-50 p-3 rounded-lg overflow-auto max-h-60 border border-red-200">
+                <pre class="text-sm whitespace-pre-wrap text-red-700">${typeof service.error === 'object' ? JSON.stringify(service.error, null, 2) : service.error}</pre>
+              </div>
+            </div>
+          `;
+        }
+
+        modalContent.innerHTML = content;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+
+      // Activate/deactivate a single service
+      function toggleServiceStatus(service) {
+        // Change disabled status
+        service.disabled = !service.disabled;
+        
+        // Save status in localStorage
+        const serviceId = service.id || service.name.replace(/\s+/g, '-').toLowerCase();
+        if (service.disabled) {
+          disabledServices[serviceId] = true;
+        } else {
+          delete disabledServices[serviceId];
+        }
+        localStorage.setItem('disabledServices', JSON.stringify(disabledServices));
+        
+        // Update dashboard
+        updateDashboard({
+          summary: calculateSummary(servicesData),
+          services: servicesData
+        });
+        
+        // Update chart
+        initChart({
+          summary: calculateSummary(servicesData)
+        });
+      }
+
+      // Update dashboard summary
+      function calculateSummary(services) {
+        const total = services.length;
+        let success = 0;
+        let failed = 0;
+        let disabled = 0;
+
+        services.forEach(service => {
+          if (service.disabled || !validationEnabled) {
+            disabled++;
+          } else if (service.status === 'success') {
+            success++;
+          } else {
+            failed++;
+          }
+        });
+
+        return { total, success, failed, disabled };
+      }
+
+      // Activate/Deactivate validation
+      function toggleValidation() {
+        validationEnabled = !validationEnabled;
+        
+        // Set validation status in localStorage
+        localStorage.setItem('validationEnabled', validationEnabled);
+        
+        // Update button UI
+        const validationStatus = document.getElementById('validation-status');
+        const validationIcon = document.getElementById('validation-icon');
+        
+        if (validationEnabled) {
+          validationStatus.textContent = 'Validación Activa';
+          validationIcon.innerHTML = '<i class="fas fa-toggle-on"></i>';
+        } else {
+          validationStatus.textContent = 'Validación Inactiva';
+          validationIcon.innerHTML = '<i class="fas fa-toggle-off"></i>';
+        }
+        
+        // Update dashboard
+        updateDashboard({
+          summary: calculateSummary(servicesData),
+          services: servicesData
+        });
+        
+        // Update chart
+        initChart({
+          summary: calculateSummary(servicesData)
+        });
+      }
+
+      // Show loading spinner
+      function showLoading() {
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('loading').classList.add('flex');
+      }
+
+      // Hide loading spinner
+      function hideLoading() {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('loading').classList.remove('flex');
+      }
+
+      // Update UI
+      function updateInitialUI() {
+        const validationStatus = document.getElementById('validation-status');
+        const validationIcon = document.getElementById('validation-icon');
+        
+        if (validationEnabled) {
+          validationStatus.textContent = 'Validación Activa';
+          validationIcon.innerHTML = '<i class="fas fa-toggle-on"></i>';
+        } else {
+          validationStatus.textContent = 'Validación Inactiva';
+          validationIcon.innerHTML = '<i class="fas fa-toggle-off"></i>';
+        }
+      }
+      
+      // Event listeners
+      document.getElementById('refresh-btn').addEventListener('click', function() {
+        // Include disabled services in the update request
+        loadServices(true);
+      });
+      
+      // Event listener para el selector de ambiente
+      document.getElementById('environment-selector').addEventListener('change', function(e) {
+        currentEnvironment = e.target.value;
+        localStorage.setItem('currentEnvironment', currentEnvironment);
+        loadServices(); // Refresh services with the new environment
+      });
+      
+      // Set the current environment
+      document.getElementById('environment-selector').value = currentEnvironment;
+      document.getElementById('toggle-validation').addEventListener('click', toggleValidation);
+      document.getElementById('close-modal').addEventListener('click', function() {
+        document.getElementById('service-detail-modal').classList.add('hidden');
+        document.getElementById('service-detail-modal').classList.remove('flex');
+      });
+      
+      // Event listener for change of environment selector
+      document.getElementById('environment-selector').addEventListener('change', function(e) {
+        currentEnvironment = e.target.value;
+        localStorage.setItem('currentEnvironment', currentEnvironment);
+        loadServices();
+      });
+      
+      // Set current environment
+      document.getElementById('environment-selector').value = currentEnvironment;
+      
+      // Update UI 
+      updateInitialUI();
+
+      // Load Services
+      loadServices();
+
+      // Auto-refresh each 10 minutes
+      setInterval(loadServices, 10 * 60 * 1000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+[
+  {
+    "identificationType": "CC",
+    "identificationNumber": "1234567890"
+  },
+  {
+    "identificationType": "CE",
+    "identificationNumber": "9876543210"
+  }
+]

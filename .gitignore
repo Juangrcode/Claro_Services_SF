@@ -1,0 +1,11 @@
+.env
+*.env
+.env.test
+.env.test
+.env.test.local
+
+
+.dist
+dist/
+
+logs/

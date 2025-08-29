@@ -1,0 +1,46 @@
+{
+  "name": "claro_services_sf",
+  "version": "1.0.0",
+  "description": "Monitor de servicios REST y SOAP para Claro",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node index.ts",
+    "watch": "nodemon --exec ts-node index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bulk-check": "ts-node src/examples/bulkDocumentCheck.ts",
+    "payment-references": "ts-node src/examples/bulkPaymentReferences.ts",
+    "create-excel-example": "ts-node src/examples/createExcelExample.ts"
+  },
+  "keywords": [
+    "monitor",
+    "services",
+    "rest",
+    "soap",
+    "claro"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0",
+    "soap": "^1.0.0",
+    "winston": "^3.11.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.9.36",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "@types/soap": "^0.18.0",
+    "@types/winston": "^2.4.4",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}

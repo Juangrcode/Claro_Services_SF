@@ -1,0 +1,17 @@
+[
+  {
+    "tipoDocumento": "1",
+    "numDocumento": "1033798660",
+    "primerApellido": "NAVARRO"
+  },
+  {
+    "tipoDocumento": "1",
+    "numDocumento": "1234567890",
+    "primerApellido": "PEREZ"
+  },
+  {
+    "tipoDocumento": "2",
+    "numDocumento": "9876543210",
+    "primerApellido": "RODRIGUEZ"
+  }
+]
