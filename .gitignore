@@ -11,3 +11,8 @@ dist/
 logs/
 
 node_modules/
+
+
+src/config/services.json/
+
+secrets/
